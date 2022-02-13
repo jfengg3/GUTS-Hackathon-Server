@@ -150,7 +150,7 @@ function downloadText(id) {
 
   function getStatusLoop(){
     var status;
-    console.log('looped');
+    console.log('transcribing...');
     fetch(url,params)
     .then((response) => response.json())
     .then((data) => {
@@ -160,9 +160,20 @@ function downloadText(id) {
           return getStatusLoop();
         }, 4000);
       } else {
-        console.log('DONEEEEEE HUAT' + status + ' ' + data.text);
+        console.log('Completed transcribing. ' + status + ' ' + data.text);
+
         if(data.text.includes("*")){
-          console.log('GOT VULGAR');
+          console.log('Audio file contains profanity, removing from the database.');
+
+          // If audio file contains profanity, we'll remove from our database
+          async function deleteAudio() {
+            let audio_url = data["audio_url"];
+            await bucket.file(audio_url.substring(audio_url.lastIndexOf('/') + 1)).delete();
+            console.log('Deleted');
+          }
+          
+          deleteAudio().catch(console.error);
+
         }
       }
     })
